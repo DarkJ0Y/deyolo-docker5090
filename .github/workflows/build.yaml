@@ -4,9 +4,6 @@ on:
   push:
     branches: [ main ]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,9 +17,13 @@ jobs:
           username: joyinvoid
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: joyinvoid/deyolo5090-stable:latest
+          platforms: linux/amd64
