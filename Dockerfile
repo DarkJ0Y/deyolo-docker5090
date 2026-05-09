@@ -54,10 +54,20 @@ RUN pip install --no-cache-dir wandb
 # ── Clone & install DEYOLO (custom ultralytics fork) ─────────
 RUN git clone https://github.com/chips96/DEYOLO.git /workspace/DEYOLO
 WORKDIR /workspace/DEYOLO
-RUN pip install --no-cache-dir -e .
+#RUN pip install --no-cache-dir -e .
+
+
+# Fix 1 — numpy trapz issue
+RUN sed -i "s/np\.trapezoid(np\.interp(x, mrec, mpre), x)/(np.trapezoid if hasattr(np, 'trapezoid') else np.trapz)(np.interp(x, mrec, mpre), x)/g" \
+    /workspace/DEYOLO/ultralytics/yolo/utils/metrics.py
+
+# Fix 2 — torch.load weights_only issue
+RUN sed -i "s/return torch.load(file, map_location='cpu'), file/return torch.load(file, map_location='cpu', weights_only=False), file/g" \
+    /workspace/DEYOLO/ultralytics/nn/tasks.py
+
 
 # ── Kaggle CLI (for dataset download) ────────────────────────
-RUN pip install --no-cache-dir kaggle
+#RUN pip install --no-cache-dir kaggle
 
 # ── Copy project files ────────────────────────────────────────
 #WORKDIR /workspace
@@ -65,7 +75,7 @@ RUN pip install --no-cache-dir kaggle
 #COPY run_notebook.py     /workspace/run_notebook.py
 #COPY notebook_converted.py /workspace/notebook_converted.py
 
-RUN chmod +x /workspace/download_dataset.sh
+#RUN chmod +x /workspace/download_dataset.sh
 
 # ── Entrypoint ────────────────────────────────────────────────
 # Expects: KAGGLE_USERNAME and KAGGLE_KEY env vars for dataset download
